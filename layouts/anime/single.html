@@ -1,0 +1,189 @@
+{{ define "main" }}
+{{ $p := .Params }}
+{{ $total := $p.score_total | float }}
+
+<article class="max-w-4xl mx-auto px-4 py-10">
+
+  {{/* ===== 头部 ===== */}}
+  <header class="mb-10">
+    <div class="flex flex-col md:flex-row gap-8">
+      {{/* 封面 */}}
+      {{ with $p.cover }}
+      <div class="w-full md:w-64 flex-shrink-0">
+        <img src="{{ . }}" alt="{{ $p.title }}"
+             class="w-full rounded-xl shadow-2xl aspect-[3/4] object-cover">
+      </div>
+      {{ end }}
+      <div class="flex-1">
+        <h1 class="text-3xl md:text-4xl font-bold tracking-tight">{{ .Title }}</h1>
+        {{ with $p.title_en }}<p class="text-lg opacity-50 mt-1">{{ . }}</p>{{ end }}
+
+        <div class="flex flex-wrap items-center gap-3 mt-4 text-sm opacity-70">
+          <span>{{ $p.year }} {{ $p.season }}</span>
+          {{ with $p.studio }}<span class="before:content-['·']"> {{ . }}</span>{{ end }}
+          {{ with $p.episodes }}<span class="before:content-['·']"> {{ . }}话</span>{{ end }}
+        </div>
+
+        {{/* 类型标签 */}}
+        {{ with $p.genres }}
+        <div class="flex flex-wrap gap-2 mt-4">
+          {{ range . }}
+          <span class="text-xs px-3 py-1 rounded-full bg-amber-500/10 text-amber-600
+                       dark:text-amber-400 border border-amber-500/20">{{ . }}</span>
+          {{ end }}
+        </div>
+        {{ end }}
+
+        {{/* 大评分 */}}
+        <div class="mt-6 p-5 rounded-xl border
+                    {{ if ge $total 90 }}bg-amber-500/5 border-amber-500/20
+                    {{ else if ge $total 75 }}bg-green-500/5 border-green-500/20
+                    {{ else if ge $total 60 }}bg-blue-500/5 border-blue-500/20
+                    {{ else }}bg-red-500/5 border-red-500/20{{ end }}">
+          <div class="flex items-end gap-3">
+            <span class="text-5xl font-bold
+                         {{ if ge $total 90 }}text-amber-500
+                         {{ else if ge $total 75 }}text-green-500
+                         {{ else if ge $total 60 }}text-blue-500
+                         {{ else }}text-red-500{{ end }}">
+              {{ printf "%.1f" $total }}
+            </span>
+            <span class="text-xl opacity-40 mb-1">/ 106</span>
+            <span class="ml-auto mb-1 px-4 py-1 rounded-full text-sm font-bold
+                         {{ if ge $total 90 }}bg-amber-500/20 text-amber-500
+                         {{ else if ge $total 75 }}bg-green-500/20 text-green-500
+                         {{ else if ge $total 60 }}bg-blue-500/20 text-blue-500
+                         {{ else }}bg-red-500/20 text-red-500{{ end }}">
+              {{ if ge $total 90 }}神作{{ else if ge $total 75 }}强推{{ else if ge $total 60 }}平稳落地{{ else }}硬伤{{ end }}
+            </span>
+          </div>
+          {{ with $p.brief }}
+          <p class="mt-2 opacity-60 italic">{{ . }}</p>
+          {{ end }}
+        </div>
+      </div>
+    </div>
+  </header>
+
+  {{/* ===== 分类评分明细 ===== */}}
+  {{ $categories := dict
+    "剧情架构" (dict
+      "pct" 28
+      "items" (slice
+        (dict "key" "script" "name" "剧本设计" "max" 8)
+        (dict "key" "pacing" "name" "节奏表达" "max" 7)
+        (dict "key" "worldbuilding" "name" "世界观塑造" "max" 5)
+        (dict "key" "theme" "name" "内核立意" "max" 8)
+      )
+    )
+    "制作水平" (dict
+      "pct" 20
+      "items" (slice
+        (dict "key" "art_stability" "name" "作画稳定性" "max" 6)
+        (dict "key" "art_impact" "name" "作画表现力" "max" 6)
+        (dict "key" "postprod" "name" "后期制作" "max" 4)
+        (dict "key" "music" "name" "剧情配乐" "max" 4)
+      )
+    )
+    "人物塑造" (dict
+      "pct" 25
+      "items" (slice
+        (dict "key" "char_design" "name" "角色设计" "max" 7)
+        (dict "key" "char_arc" "name" "人物弧光" "max" 8)
+        (dict "key" "voice_act" "name" "配音表现" "max" 5)
+        (dict "key" "char_relation" "name" "人物关系" "max" 5)
+      )
+    )
+    "思想情感价值" (dict
+      "pct" 12
+      "items" (slice
+        (dict "key" "recommend" "name" "可推荐性" "max" 8)
+        (dict "key" "fan_creat" "name" "二创环境" "max" 4)
+      )
+    )
+    "加分项" (dict
+      "pct" 0
+      "items" (slice
+        (dict "key" "bonus_plot" "name" "剧情创意" "max" 2)
+        (dict "key" "bonus_prod" "name" "制作创意" "max" 2)
+        (dict "key" "bonus_impact" "name" "后续影响" "max" 2)
+      )
+    )
+    "特别评分" (dict
+      "pct" 15
+      "items" (slice
+        (dict "key" "discussion" "name" "讨论度" "max" 5)
+        (dict "key" "memorable" "name" "记忆点" "max" 5)
+        (dict "key" "resonance" "name" "电波契合度" "max" 5)
+      )
+    )
+  }}
+
+  <section class="mb-10">
+    <h2 class="text-2xl font-bold mb-6">评分明细</h2>
+    <div class="space-y-6">
+      {{ range $catName, $cat := $categories }}
+      {{ $catMax := 0 }}
+      {{ range $cat.items }}{{ $catMax = add $catMax .max }}{{ end }}
+      {{ $catScore := 0 }}
+      {{ range $cat.items }}
+        {{ $val := index $p (printf "score_%s" .key) }}
+        {{ $catScore = add $catScore (mul (float $val) (div (float .max) 10.0)) }}
+      {{ end }}
+
+      <div class="p-5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border
+                  border-neutral-200 dark:border-neutral-800">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold">
+            {{ $catName }}
+            {{ if gt $cat.pct 0 }}<span class="text-xs opacity-40 ml-1">权重 {{ $cat.pct }}%</span>{{ end }}
+          </h3>
+          <span class="text-sm font-bold opacity-70">
+            {{ printf "%.1f" $catScore }} / {{ $catMax }}
+          </span>
+        </div>
+        <div class="space-y-3">
+          {{ range $cat.items }}
+          {{ $raw := index $p (printf "score_%s" .key) }}
+          {{ $score := mul (float $raw) (div (float .max) 10.0) }}
+          {{ $pct := div (float $score) (float .max) | mul 100.0 }}
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="opacity-70">{{ .name }}</span>
+              <span class="font-mono font-semibold
+                           {{ if lt $raw 0.0 }}text-red-500{{ end }}">
+                {{ printf "%.1f" $score }} / {{ .max }}
+              </span>
+            </div>
+            <div class="h-2 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-700
+                          {{ if ge $pct 80.0 }}bg-amber-500
+                          {{ else if ge $pct 50.0 }}bg-green-500
+                          {{ else if ge $pct 0.0 }}bg-blue-500
+                          {{ else }}bg-red-500{{ end }}"
+                   style="width: {{ if lt $pct 0.0 }}0{{ else }}{{ printf "%.1f" $pct }}{{ end }}%">
+              </div>
+            </div>
+          </div>
+          {{ end }}
+        </div>
+      </div>
+      {{ end }}
+    </div>
+  </section>
+
+  {{/* ===== 正文 ===== */}}
+  <section class="prose dark:prose-invert max-w-none">
+    {{ .Content }}
+  </section>
+
+  {{/* ===== 返回列表 ===== */}}
+  <div class="mt-12 pt-6 border-t border-neutral-200 dark:border-neutral-800">
+    <a href="{{ .Parent.Permalink }}"
+       class="text-sm opacity-50 hover:opacity-100 transition-opacity">
+      ← 返回番剧评价列表
+    </a>
+  </div>
+
+</article>
+{{ end }}

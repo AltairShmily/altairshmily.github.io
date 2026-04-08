@@ -1,0 +1,31 @@
+[[main]]
+  name = "文章"
+  pageRef = "posts"
+  weight = 1
+
+[[main]]
+  name = "番剧评价"
+  pageRef = "anime"
+  weight = 2
+
+# [[main]]
+#   name = "标签"
+#   pageRef = "tags"
+#   weight = 3
+
+# [[main]]
+#   name = "分类"
+#   pageRef = "categories"
+#   weight = 4
+
+[[main]]
+  name = "关于"
+  pageRef = "about"
+  weight = 5
+
+[[main]]
+  identifier = "github"
+  url = "https://github.com/AltairShmily"
+  weight = 10
+  [main.params]
+    icon = "github"

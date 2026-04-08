@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>番剧评价提交</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0b;
+      --surface: #141416;
+      --surface2: #1c1c1f;
+      --border: #2a2a2e;
+      --text: #e8e6e3;
+      --text-dim: #8a8a8e;
+      --accent: #f0b429;
+      --accent-hover: #d97706;
+      --accent-glow: #f0b42933;
+      --green: #34d399;
+      --blue: #60a5fa;
+      --red: #f87171;
+      --success: #22c55e;
+      --error: #ef4444;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 600px 400px at 20% 10%, rgba(240,180,41,0.06), transparent),
+        radial-gradient(ellipse 500px 500px at 80% 80%, rgba(99,102,241,0.04), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* ===== 页头 ===== */
+    .page-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding: 2rem 0;
+    }
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), #f97316);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .page-header p {
+      color: var(--text-dim);
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    /* ===== 卡片 ===== */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: #3a3a3e; }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card-title .icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+    }
+    .card-title .icon.gold { background: rgba(240,180,41,0.15); }
+    .card-title .icon.blue { background: rgba(96,165,250,0.15); }
+    .card-title .icon.green { background: rgba(52,211,153,0.15); }
+    .card-title .icon.purple { background: rgba(167,139,250,0.15); }
+    .card-title .icon.red { background: rgba(248,113,113,0.15); }
+
+    /* ===== 表单元素 ===== */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+    .form-row.single { grid-template-columns: 1fr; }
+
+    .form-group { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      margin-bottom: 0.35rem;
+      letter-spacing: 0.02em;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="url"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    textarea { resize: vertical; min-height: 100px; }
+    select option { background: var(--surface2); }
+
+    /* ===== 标签选择 ===== */
+    .tag-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .tag-option {
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: transparent;
+      color: var(--text-dim);
+      user-select: none;
+    }
+    .tag-option:hover { border-color: var(--accent); color: var(--text); }
+    .tag-option.selected {
+      background: rgba(240,180,41,0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ===== 封面预览 ===== */
+    .cover-preview-wrap {
+      margin-top: 0.6rem;
+      position: relative;
+      display: none;
+      max-width: 200px;
+    }
+    .cover-preview-wrap.visible { display: block; }
+    .cover-preview-inner {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      aspect-ratio: 3 / 4;
+    }
+    .cover-preview-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .cover-preview-inner .cover-dim {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 0.3rem 0.5rem;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.7);
+      font-variant-numeric: tabular-nums;
+    }
+    .cover-remove {
+      position: absolute;
+      top: 5px; right: 5px;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      border: none;
+      color: #fff;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .cover-preview-wrap:hover .cover-remove { opacity: 1; }
+
+    /* ===== 评分行 ===== */
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid rgba(51,51,51,0.5);
+    }
+    .score-row:last-child { border-bottom: none; }
+
+    .item-label {
+      width: 140px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .item-name {
+      font-size: 0.88rem;
+      color: var(--text);
+      font-weight: 400;
+    }
+    .item-max {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      line-height: 1.3;
+    }
+    .item-desc {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      opacity: 0.7;
+      line-height: 1.3;
+    }
+
+    .score-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      border: none;
+      padding: 0;
+      background: linear-gradient(90deg, #ef4444 0%, var(--surface2) 50%, #f59e0b 100%);
+    }
+    .score-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 4px rgba(245,158,11,0.4);
+      transition: transform 0.15s;
+    }
+    .score-slider::-webkit-slider-thumb:hover { transform: scale(1.25); }
+    .score-slider::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+    }
+
+    .score-num {
+      width: 68px !important;
+      padding: 0.28rem 0.3rem !important;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.88rem !important;
+      color: var(--accent);
+      background: var(--surface2) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 6px !important;
+      flex-shrink: 0;
+      -moz-appearance: textfield;
+    }
+    .score-num::-webkit-outer-spin-button,
+    .score-num::-webkit-inner-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
+    .score-num:focus {
+      border-color: var(--accent) !important;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(245,158,11,0.15);
+    }
+    .score-num.negative { color: var(--error); }
+
+    .item-contrib {
+      width: 52px;
+      text-align: right;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ===== 类别小计 ===== */
+    .cat-subtotal {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.8rem;
+      padding-top: 0.6rem;
+      border-top: 1px dashed var(--border);
+      font-size: 0.85rem;
+    }
+    .cat-subtotal .label { color: var(--text-dim); }
+    .cat-subtotal .value {
+      font-weight: 700;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ===== 总分汇总 ===== */
+    .total-section {
+      background: linear-gradient(135deg, #1a1508, #1a1a1a);
+      border: 1px solid #4a3a10;
+    }
+    .total-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      padding: 0.25rem 0;
+    }
+    .total-row .label { color: var(--text-dim); }
+    .total-row .val {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .grand-total { text-align: center; padding: 1.2rem 0 0.5rem; }
+    .grand-total .score-big {
+      font-size: 3.2rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      transition: color 0.3s;
+    }
+    .grand-total .score-max {
+      font-size: 1rem;
+      color: var(--text-dim);
+    }
+    .grand-total .rating-label {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.3rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    /* ===== 分类标题 ===== */
+    .score-category {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .score-category .weight {
+      font-weight: 400;
+      color: var(--text-dim);
+      text-transform: none;
+      letter-spacing: normal;
+      font-size: 0.7rem;
+    }
+
+    /* ===== 提交按钮 ===== */
+    .submit-btn {
+      width: 100%;
+      padding: 0.9rem;
+      border: none;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--accent), #f97316);
+      color: #000;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .submit-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(240,180,41,0.25);
+    }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .submit-btn .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid transparent;
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 0.5rem;
+    }
+    .submit-btn.loading .spinner { display: inline-block; }
+    .submit-btn.loading .btn-text { opacity: 0.7; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== Toast ===== */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      padding: 0.75rem 1.5rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      white-space: nowrap;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    .toast.success { background: var(--success); color: #000; }
+    .toast.error { background: var(--error); color: #fff; }
+    .toast.info { background: var(--blue); color: #000; }
+
+    /* ===== 响应式 ===== */
+    @media (max-width: 640px) {
+      .form-row, .form-row.triple { grid-template-columns: 1fr; }
+      .item-label { width: 90px; }
+      .item-name { font-size: 0.8rem; }
+      .score-num { width: 60px !important; }
+      .item-contrib { width: 44px; font-size: 0.72rem; }
+      .total-grid { grid-template-columns: 1fr; }
+      .grand-total .score-big { font-size: 2.6rem; }
+      .wrapper { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <div class="page-header">
+    <h1>番剧评价提交</h1>
+    <p>填写信息并拖动滑块评分，提交后自动生成 Markdown 文章</p>
+  </div>
+
+  <!-- 基本信息 -->
+  <div class="card">
+    <div class="card-title"><span class="icon gold">📋</span> 基本信息</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>中文标题 *</label>
+        <input type="text" id="title_cn" placeholder="葬送的芙莉莲">
+      </div>
+      <div class="form-group">
+        <label>英文标题</label>
+        <input type="text" id="title_en" placeholder="Frieren: Beyond Journey's End">
+      </div>
+    </div>
+    <div class="form-row triple">
+      <div class="form-group">
+        <label>年份</label>
+        <input type="number" id="year" value="2024" min="1960" max="2030">
+      </div>
+      <div class="form-group">
+        <label>季度</label>
+        <select id="season">
+          <option value="冬季">冬季（1月）</option>
+          <option value="春季">春季（4月）</option>
+          <option value="夏季" selected>夏季（7月）</option>
+          <option value="秋季">秋季（10月）</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>集数</label>
+        <input type="number" id="episodes" value="12" min="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>制作公司</label>
+        <input type="text" id="studio" placeholder="WIT Studio">
+      </div>
+      <div class="form-group">
+        <label>封面图片 URL</label>
+        <input type="url" id="cover" placeholder="https://example.com/cover.jpg">
+        <div class="cover-preview-wrap" id="coverPreview">
+          <div class="cover-preview-inner">
+            <img id="coverImg" src="" alt="封面预览">
+            <div class="cover-dim" id="coverDim"></div>
+          </div>
+          <button type="button" class="cover-remove" id="coverRemove" title="移除封面">✕</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-row single">
+      <div class="form-group">
+        <label>一句话简介</label>
+        <input type="text" id="brief" placeholder="一句话描述这部作品">
+      </div>
+    </div>
+    <div class="form-row single">
+      <div class="form-group">
+        <label>类型标签（点击选择）</label>
+        <div class="tag-selector" id="genreTags">
+          <span class="tag-option" data-genre="热血">热血</span>
+          <span class="tag-option" data-genre="恋爱">恋爱</span>
+          <span class="tag-option" data-genre="日常">日常</span>
+          <span class="tag-option" data-genre="喜剧">喜剧</span>
+          <span class="tag-option" data-genre="科幻">科幻</span>
+          <span class="tag-option" data-genre="奇幻">奇幻</span>
+          <span class="tag-option" data-genre="悬疑">悬疑</span>
+          <span class="tag-option" data-genre="治愈">治愈</span>
+          <span class="tag-option" data-genre="动作">动作</span>
+          <span class="tag-option" data-genre="运动">运动</span>
+          <span class="tag-option" data-genre="音乐">音乐</span>
+          <span class="tag-option" data-genre="异世界">异世界</span>
+          <span class="tag-option" data-genre="校园">校园</span>
+          <span class="tag-option" data-genre="百合">百合</span>
+          <span class="tag-option" data-genre="耽美">耽美</span>
+          <span class="tag-option" data-genre="机战">机战</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-row single">
+      <div class="form-group">
+        <label>推荐标签（点击选择）</label>
+        <div class="tag-selector" id="recTags">
+          <span class="tag-option" data-tag="推荐">推荐</span>
+          <span class="tag-option" data-tag="神作">神作</span>
+          <span class="tag-option" data-tag="佳作">佳作</span>
+          <span class="tag-option" data-tag="轻松向">轻松向</span>
+          <span class="tag-option" data-tag="虐心">虐心</span>
+          <span class="tag-option" data-tag="慎入">慎入</span>
+          <span class="tag-option" data-tag="补番推荐">补番推荐</span>
+          <span class="tag-option" data-tag="当季必看">当季必看</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 评分（JS 动态生成） -->
+  <div id="scoresContainer"></div>
+
+  <!-- 总分汇总 -->
+  <div class="card total-section" id="totalSection"></div>
+
+  <!-- 评价内容 -->
+  <div class="card">
+    <div class="card-title"><span class="icon green">✍️</span> 详细评价</div>
+    <div class="form-row single">
+      <div class="form-group">
+        <label>正文内容（Markdown 格式）</label>
+        <textarea id="content" rows="10"
+                  placeholder="## 简评&#10;&#10;这部作品...&#10;&#10;## 详细评价&#10;&#10;**剧情**：...&#10;**画面**：...&#10;**音乐**：..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 提交按钮 -->
+  <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">
+    <span class="spinner"></span>
+    <span class="btn-text">生成并提交评价</span>
+  </button>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ====================================================================
+// 评分标准定义
+// ====================================================================
+const SCORE_SCHEMA = [
+  {
+    key: 'plot',
+    name: '剧情架构',
+    pct: 28,
+    items: [
+      { key: 'script',        name: '剧本设计',   max: 8, desc: '逻辑严谨自洽，结构完整，伏笔恰当，戏剧张力' },
+      { key: 'pacing',        name: '节奏表达',   max: 7, desc: '节奏流畅，剧情刻画详略得当' },
+      { key: 'worldbuilding', name: '世界观塑造', max: 5, desc: '引人入胜、合理自洽、全程践行世界观' },
+      { key: 'theme',         name: '内核立意',   max: 8, desc: '探讨深刻/尖锐话题，引发思考和讨论' }
+    ]
+  },
+  {
+    key: 'production',
+    name: '制作水平',
+    pct: 20,
+    items: [
+      { key: 'art_stability', name: '作画稳定性', max: 6, desc: '性价比、良好稳定的观感' },
+      { key: 'art_impact',    name: '作画表现力', max: 6, desc: '极具想象力/张力/讨论度的作画' },
+      { key: 'postprod',      name: '后期制作',   max: 4, desc: '镜头调度、光影、色调等后处理效果' },
+      { key: 'music',         name: '剧情配乐',   max: 4, desc: '符合情景，推动感情，制作合适的音乐' }
+    ]
+  },
+  {
+    key: 'character',
+    name: '人物塑造',
+    pct: 25,
+    items: [
+      { key: 'char_design',   name: '角色设计',   max: 7, desc: '形象恰当有记忆点，背景设定合适，行为符合动机' },
+      { key: 'char_arc',      name: '人物弧光',   max: 8, desc: '角色经历剧情后动机、性格或价值观的合理转变' },
+      { key: 'voice_act',     name: '配音表现',   max: 5, desc: '符合角色形象设定和剧情需要' },
+      { key: 'char_relation', name: '人物关系',   max: 5, desc: '有效的人物网络，角色间关系符合逻辑' }
+    ]
+  },
+  {
+    key: 'value',
+    name: '思想情感价值',
+    pct: 12,
+    items: [
+      { key: 'recommend', name: '可推荐性', max: 8, desc: '冲神的充要条件——能否向圈外人推荐' },
+      { key: 'fan_creat', name: '二创环境', max: 4, desc: '是否营造了友善/有趣的互联网二创讨论环境' }
+    ]
+  },
+  {
+    key: 'bonus',
+    name: '加分项',
+    pct: 0,
+    items: [
+      { key: 'bonus_plot',   name: '剧情创意', max: 2, desc: '意料之外、情理之中的剧情' },
+      { key: 'bonus_prod',   name: '制作创意', max: 2, desc: '个性且拉高观感的表达方式' },
+      { key: 'bonus_impact', name: '后续影响', max: 2, desc: '对业界巨大反响（名梗/名场面/里程碑）' }
+    ]
+  },
+  {
+    key: 'special',
+    name: '特别评分',
+    pct: 15,
+    items: [
+      { key: 'discussion', name: '讨论度',     max: 5, desc: '整个观影期间持续了良好的讨论度' },
+      { key: 'memorable',  name: '记忆点',     max: 5, desc: '支持二刷/强烈记忆点，或特定时间节点产生意义' },
+      { key: 'resonance',  name: '电波契合度', max: 5, desc: '团队内每一人的最主观评分，取平均' }
+    ]
+  }
+];
+
+// ====================================================================
+// 配置
+// ====================================================================
+const CONFIG = {
+  owner: 'AltairShmily',
+  repo: 'altairshmily.github.io',
+  branch: 'main',
+  contentPath: 'content/anime'
+};
+
+// ====================================================================
+// 生成评分表单
+// ====================================================================
+const container = document.getElementById('scoresContainer');
+
+SCORE_SCHEMA.forEach(cat => {
+  const sec = document.createElement('div');
+  sec.className = 'card';
+
+  const pctLabel = cat.pct > 0 ? `（权重 ${cat.pct}%）` : '（额外加分 0~6）';
+
+  // 图标映射
+  const iconMap = { plot: '📖', production: '🎬', character: '👤', value: '💡', bonus: '⭐', special: '🌟' };
+  const colorMap = { plot: 'blue', production: 'green', character: 'purple', value: 'red', bonus: 'gold', special: 'purple' };
+
+  let html = `<div class="card-title"><span class="icon ${colorMap[cat.key]}">${iconMap[cat.key]}</span> ${cat.name} ${pctLabel}</div>`;
+
+  cat.items.forEach(item => {
+    html += `
+      <div class="score-row" data-key="${item.key}" data-max="${item.max}">
+        <div class="item-label">
+          <span class="item-name">${item.name}</span>
+          <span class="item-max">满分 ${item.max} · ${item.desc}</span>
+        </div>
+        <input type="range" class="score-slider" min="-10" max="10" step="0.1" value="0.0">
+        <input type="number" class="score-num" step="0.1" value="0.0">
+        <span class="item-contrib">= 0.0</span>
+      </div>`;
+  });
+
+  html += `
+    <div class="cat-subtotal" data-cat="${cat.key}">
+      <span class="label">小计</span>
+      <span class="value">0.0 / ${cat.items.reduce((s, i) => s + i.max, 0)}</span>
+    </div>`;
+
+  sec.innerHTML = html;
+  container.appendChild(sec);
+});
+
+// ====================================================================
+// 总分区域
+// ====================================================================
+(function buildTotal() {
+  const sec = document.getElementById('totalSection');
+  let html = `<div class="card-title"><span class="icon gold">📊</span> 总分汇总</div><div class="total-grid">`;
+
+  SCORE_SCHEMA.forEach(cat => {
+    const maxSum = cat.items.reduce((s, i) => s + i.max, 0);
+    html += `
+      <div class="total-row">
+        <span class="label">${cat.name}</span>
+        <span class="val" data-total-cat="${cat.key}">0.0 / ${maxSum}</span>
+      </div>`;
+  });
+
+  html += `</div>
+    <div class="grand-total">
+      <div>
+        <span class="score-big" id="grandTotal">0.0</span>
+        <span class="score-max">/ 106</span>
+      </div>
+      <span class="rating-label" id="ratingLabel"
+            style="background:rgba(255,255,255,0.1);color:var(--text-dim);">等待评分</span>
+    </div>`;
+
+  sec.innerHTML = html;
+})();
+
+// ====================================================================
+// 评分联动逻辑
+// ====================================================================
+function fmt(v) { return (Math.round(v * 10) / 10).toFixed(1); }
+
+function updateSliderGradient(slider) {
+  const min = parseFloat(slider.min);
+  const max = parseFloat(slider.max);
+  const val = parseFloat(slider.value);
+  const pct = ((val - min) / (max - min)) * 100;
+  slider.style.background =
+    'linear-gradient(90deg, #ef4444 0%, #ef4444 ' + (pct - 1) +
+    '%, #555 ' + pct + '%, #f59e0b ' + (pct + 1) + '%, #f59e0b 100%)';
+}
+
+function updateAll() {
+  const catScores = {};
+
+  SCORE_SCHEMA.forEach(cat => {
+    let catSum = 0;
+    cat.items.forEach(item => {
+      const row = document.querySelector('.score-row[data-key="' + item.key + '"]');
+      const numInput = row.querySelector('.score-num');
+      const slider = row.querySelector('.score-slider');
+      const contrib = row.querySelector('.item-contrib');
+
+      const v = parseFloat(numInput.value) || 0;
+      const score = v * (item.max / 10);
+      catSum += score;
+
+      contrib.textContent = '= ' + fmt(score);
+      updateSliderGradient(slider);
+
+      if (v < 0) {
+        numInput.classList.add('negative');
+      } else {
+        numInput.classList.remove('negative');
+      }
+    });
+
+    catScores[cat.key] = catSum;
+
+    const sub = document.querySelector('.cat-subtotal[data-cat="' + cat.key + '"] .value');
+    const maxSum = cat.items.reduce((s, i) => s + i.max, 0);
+    if (sub) sub.textContent = fmt(catSum) + ' / ' + maxSum;
+
+    const totalRow = document.querySelector('[data-total-cat="' + cat.key + '"]');
+    if (totalRow) totalRow.textContent = fmt(catSum) + ' / ' + maxSum;
+  });
+
+  let grand = 0;
+  Object.values(catScores).forEach(v => grand += v);
+  grand = Math.round(grand * 10) / 10;
+
+  document.getElementById('grandTotal').textContent = fmt(grand);
+
+  const label = document.getElementById('ratingLabel');
+  let rating, bg, color;
+  if (grand >= 90)                          { rating = '神作';     bg = 'rgba(245,158,11,0.2)';  color = '#f59e0b'; }
+  else if (grand >= 75)                     { rating = '强推';     bg = 'rgba(34,197,94,0.15)';  color = '#22c55e'; }
+  else if (grand >= 60)                     { rating = '平稳落地'; bg = 'rgba(59,130,246,0.15)'; color = '#60a5fa'; }
+  else if (grand >= 40)                     { rating = '硬伤';     bg = 'rgba(234,179,8,0.15)';  color = '#eab308'; }
+  else if (grand >= 15)                     { rating = '丑陋';     bg = 'rgba(239,68,68,0.15)';  color = '#ef4444'; }
+  else if (grand < 15 && grand !== 0)       { rating = '横亘千古'; bg = 'rgba(127,29,29,0.2)';   color = '#dc2626'; }
+  else                                      { rating = '等待评分'; bg = 'rgba(255,255,255,0.1)';  color = 'var(--text-dim)'; }
+
+  label.textContent = rating;
+  label.style.background = bg;
+  label.style.color = color;
+}
+
+document.querySelectorAll('.score-row').forEach(row => {
+  const slider = row.querySelector('.score-slider');
+  const numInput = row.querySelector('.score-num');
+
+  updateSliderGradient(slider);
+
+  slider.addEventListener('input', () => {
+    numInput.value = fmt(parseFloat(slider.value));
+    updateAll();
+  });
+
+  numInput.addEventListener('input', () => {
+    const v = parseFloat(numInput.value);
+    if (!isNaN(v)) {
+      slider.value = Math.max(-10, Math.min(10, v));
+    }
+    updateAll();
+  });
+
+  numInput.addEventListener('blur', () => {
+    const v = parseFloat(numInput.value);
+    if (isNaN(v)) {
+      numInput.value = '0.0';
+      slider.value = 0;
+    } else {
+      numInput.value = fmt(v);
+      slider.value = Math.max(-10, Math.min(10, v));
+    }
+    updateAll();
+  });
+});
+
+updateAll();
+
+// ====================================================================
+// 封面预览
+// ====================================================================
+const coverInput = document.getElementById('cover');
+const coverPreview = document.getElementById('coverPreview');
+const coverImg = document.getElementById('coverImg');
+const coverDim = document.getElementById('coverDim');
+const coverRemove = document.getElementById('coverRemove');
+let coverDebounce = null;
+
+coverInput.addEventListener('input', () => {
+  clearTimeout(coverDebounce);
+  coverDebounce = setTimeout(() => {
+    const url = coverInput.value.trim();
+    if (!url) { coverPreview.classList.remove('visible'); return; }
+    coverImg.src = url;
+    coverImg.onload = function () {
+      coverDim.textContent = this.naturalWidth + ' × ' + this.naturalHeight;
+      coverPreview.classList.add('visible');
+    };
+    coverImg.onerror = function () { coverPreview.classList.remove('visible'); };
+  }, 400);
+});
+
+coverRemove.addEventListener('click', () => {
+  coverInput.value = '';
+  coverPreview.classList.remove('visible');
+  coverImg.src = '';
+});
+
+if (coverInput.value.trim()) coverInput.dispatchEvent(new Event('input'));
+
+// ====================================================================
+// 标签切换
+// ====================================================================
+document.querySelectorAll('.tag-selector').forEach(group => {
+  group.querySelectorAll('.tag-option').forEach(tag => {
+    tag.addEventListener('click', () => tag.classList.toggle('selected'));
+  });
+});
+
+// ====================================================================
+// Toast
+// ====================================================================
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ====================================================================
+// 工具函数
+// ====================================================================
+function slugify(text) {
+  return text.toLowerCase()
+    .replace(/[^\w\u4e00-\u9fff-]+/g, '-')
+    .replace(/^-+|-+$/g, '') || Date.now().toString();
+}
+
+function getSelected(containerId, dataAttr) {
+  return [...document.querySelectorAll('#' + containerId + ' .tag-option.selected')]
+    .map(el => '"' + el.dataset[dataAttr] + '"');
+}
+
+function collectAll() {
+  const raw = {};
+  let grand = 0;
+  SCORE_SCHEMA.forEach(cat => {
+    cat.items.forEach(item => {
+      const row = document.querySelector('.score-row[data-key="' + item.key + '"]');
+      const v = parseFloat(row.querySelector('.score-num').value) || 0;
+      const s = Math.round(v * (item.max / 10) * 10) / 10;
+      raw[item.key] = Math.round(v * 10) / 10;
+      grand += s;
+    });
+  });
+  grand = Math.round(grand * 10) / 10;
+  return { raw, grand };
+}
+
+// ====================================================================
+// 生成 Markdown
+// ====================================================================
+function generateMarkdown() {
+  const title = document.getElementById('title_cn').value.trim();
+  if (!title) { showToast('请输入中文标题', 'error'); return null; }
+
+  const titleEn = document.getElementById('title_en').value.trim();
+  const cover = document.getElementById('cover').value.trim();
+  const year = document.getElementById('year').value;
+  const season = document.getElementById('season').value;
+  const episodes = document.getElementById('episodes').value;
+  const studio = document.getElementById('studio').value.trim();
+  const brief = document.getElementById('brief').value.trim();
+  const content = document.getElementById('content').value;
+
+  const { raw, grand } = collectAll();
+  const genres = getSelected('genreTags', 'genre');
+  const tags = getSelected('recTags', 'tag');
+  const today = new Date().toISOString().split('T')[0];
+
+  let md = '---\n';
+  md += 'title: "' + title + '"\n';
+  if (titleEn) md += 'title_en: "' + titleEn + '"\n';
+  md += 'date: ' + today + '\n';
+  if (cover) md += 'cover: "' + cover + '"\n';
+  md += 'year: ' + year + '\n';
+  md += 'season: "' + season + '"\n';
+  if (episodes) md += 'episodes: ' + episodes + '\n';
+  if (studio) md += 'studio: "' + studio + '"\n';
+  if (genres.length) md += 'genres: [' + genres.join(', ') + ']\n';
+
+  SCORE_SCHEMA.forEach(cat => {
+    cat.items.forEach(item => {
+      md += 'score_' + item.key + ': ' + raw[item.key].toFixed(1) + '\n';
+    });
+  });
+  md += 'score_total: ' + grand.toFixed(1) + '\n';
+
+  if (tags.length) md += 'tags: [' + tags.join(', ') + ']\n';
+  if (brief) md += 'brief: "' + brief + '"\n';
+  md += '---\n\n';
+  md += content || '## 简评\n\n' + brief + '\n';
+
+  return md;
+}
+
+// ====================================================================
+// GitHub API
+// ====================================================================
+async function commitToGitHub(slug, content) {
+  const token = localStorage.getItem('gh_token') || '';
+  if (!token) {
+    const input = prompt('请输入 GitHub Personal Access Token（需要 repo 权限）：');
+    if (!input) throw new Error('未提供 Token');
+    localStorage.setItem('gh_token', input.trim());
+    return commitToGitHub(slug, content); // 递归重试
+  }
+
+  const { owner, repo, branch, contentPath } = CONFIG;
+  const filePath = contentPath + '/' + slug + '.md';
+  const apiUrl = 'https://api.github.com/repos/' + owner + '/' + repo + '/contents/' + filePath;
+
+  let sha = null;
+  try {
+    const res = await fetch(apiUrl, {
+      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (res.ok) { const d = await res.json(); sha = d.sha; }
+  } catch (e) {}
+
+  const body = {
+    message: '📝 添加番剧评价: ' + document.getElementById('title_cn').value,
+    content: btoa(unescape(encodeURIComponent(content))),
+    branch: branch
+  };
+  if (sha) body.sha = sha;
+
+  const res = await fetch(apiUrl, {
+    method: 'PUT',
+    headers: {
+      'Authorization': 'token ' + token,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    // Token 可能过期，清除后重试
+    if (res.status === 401) {
+      localStorage.removeItem('gh_token');
+      throw new Error('Token 无效或已过期，请重新输入');
+    }
+    const err = await res.json();
+    throw new Error(err.message || '提交失败');
+  }
+
+  return await res.json();
+}
+
+// ====================================================================
+// 提交处理
+// ====================================================================
+async function handleSubmit() {
+  const title = document.getElementById('title_cn').value.trim();
+  if (!title) { showToast('请输入中文标题', 'error'); return; }
+
+  const md = generateMarkdown();
+  if (!md) return;
+
+  const slug = slugify(title);
+  const btn = document.getElementById('submitBtn');
+
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    const result = await commitToGitHub(slug, md);
+    showToast('提交成功！GitHub Actions 正在构建...', 'success');
+    setTimeout(() => {
+      if (confirm('提交成功！是否清空表单继续填写下一个？')) {
+        location.reload();
+      }
+    }, 1500);
+  } catch (e) {
+    showToast('提交失败：' + e.message, 'error');
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>

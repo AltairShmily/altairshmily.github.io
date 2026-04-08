@@ -1,0 +1,26 @@
+# ---- 外观 ----
+colorScheme = "blowfish"       # 内置配色方案
+defaultAppearance = "light"    # light 或 dark
+autoSwitchAppearance = true    # 跟随系统
+
+# ---- 首页 ----
+homepage.layout = "profile"    # profile（个人）/ page（传统）/ hero
+homepage.homepageImage = "/images/avatar.jpg"
+
+# ---- 文章列表 ----
+showRecent = true
+recentLimit = 12
+
+# ---- 目录 ----
+showToc = true
+tocOpen = true
+
+# ---- 搜索 ----
+enableSearch = true
+
+# ---- 页脚 ----
+footer.showCopyright = true
+footer.showThemeAttribution = true
+
+# ---- 图片 ----
+lqipPlaceholders = true        # 低质量图片占位
