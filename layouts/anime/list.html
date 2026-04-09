@@ -1,76 +1,101 @@
 {{ define "main" }}
+{{ $allPages := .Pages }}
 <div class="max-w-6xl mx-auto px-4 py-10">
 
   <header class="mb-10">
     <h1 class="text-4xl font-bold tracking-tight">{{ .Title }}</h1>
     {{ with .Description }}<p class="text-lg mt-2 opacity-70">{{ . }}</p>{{ end }}
-    <div class="mt-4">
+    <div class="mt-6">
       <a href="/form.html"
-         class="inline-block px-5 py-2.5 rounded-lg font-semibold text-sm
-                bg-amber-500 text-black hover:bg-amber-400 transition-colors">
-        + 提交新评价
+         class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm
+                bg-amber-500 text-white hover:bg-amber-400
+                shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40
+                transition-all duration-300">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        提交新评价
       </a>
     </div>
   </header>
 
-  <!-- 筛选栏 -->
-  <div class="flex flex-wrap gap-2 mb-8" id="filterBar">
-    <button class="filter-btn active" data-filter="all">全部</button>
-    <button class="filter-btn" data-filter="90">神作 (≥90)</button>
-    <button class="filter-btn" data-filter="75">强推 (≥75)</button>
-    <button class="filter-btn" data-filter="60">平稳 (≥60)</button>
+  <div class="flex flex-wrap items-center gap-4 mb-6">
+    <span class="text-sm font-medium text-neutral-500">评分:</span>
+    <div class="flex flex-wrap gap-2">
+      <button class="filter-btn active" data-filter="all">全部</button>
+      <button class="filter-btn" data-filter="90">神作 (≥90)</button>
+      <button class="filter-btn" data-filter="75">强推 (≥75)</button>
+      <button class="filter-btn" data-filter="60">平稳 (≥60)</button>
+    </div>
+{{ $years := slice }}
+{{ range $allPages }}{{ $year := .Params.year }}{{ if $year }}{{ $years = $years | append $year }}{{ end }}{{ end }}
+{{ $uniqueYears := uniq $years }}
+    <span class="text-sm font-medium text-neutral-500 ml-4">年份:</span>
+    <select id="yearFilter" class="w-36 px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+      <option value="all">全部</option>
+      {{ range sort $uniqueYears "value" "desc" }}<option value="{{ . }}">{{ . }}</option>{{ end }}
+    </select>
+    <span class="text-sm font-medium text-neutral-500">季度:</span>
+    <select id="seasonFilter" class="w-36 px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+      <option value="all">全部</option>
+      <option value="冬季">冬季 (1月)</option>
+      <option value="春季">春季 (4月)</option>
+      <option value="夏季">夏季 (7月)</option>
+      <option value="秋季">秋季 (10月)</option>
+    </select>
   </div>
 
-  <!-- 文章网格 -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="animeGrid">
+  <div class="space-y-4" id="animeGrid">
     {{ range .Pages.ByParam "score_total" }}
     {{ $total := .Params.score_total | float }}
+    {{ $year := .Params.year }}{{ $season := .Params.season }}
     <a href="{{ .Permalink }}"
-       class="anime-card group block rounded-xl overflow-hidden border border-neutral-200
-              dark:border-neutral-800 bg-white dark:bg-neutral-900
-              hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-       data-score="{{ $total }}">
+       class="anime-card group flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 bg-white dark:bg-neutral-900/50 hover:border-primary-500/30 dark:hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/10 transition-all duration-300"
+       data-score="{{ $total }}" data-year="{{ $year }}" data-season="{{ $season }}">
 
-      {{/* 封面 */}}
-      <div class="relative overflow-hidden bg-neutral-100 dark:bg-neutral-800"
-           style="aspect-ratio:3/4;max-height:160px;">
+      <div class="shrink-0 w-24 sm:w-28 aspect-[3/4] rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-800 shadow-md">
         {{ with .Params.cover }}
         <img src="{{ . }}" alt="{{ $.Title }}" loading="lazy"
              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
         {{ else }}
-        <div class="w-full h-full flex items-center justify-center text-5xl opacity-15">🎬</div>
+        <div class="w-full h-full flex items-center justify-center text-2xl opacity-20">🎬</div>
         {{ end }}
-        {{/* 评分角标 */}}
-        <div class="absolute top-3 right-3 px-3 py-1.5 rounded-lg font-bold text-lg backdrop-blur-md
-                    {{ if ge $total 90 }}bg-amber-500/90 text-black
-                    {{ else if ge $total 75 }}bg-green-500/90 text-white
-                    {{ else if ge $total 60 }}bg-blue-500/90 text-white
-                    {{ else }}bg-red-500/80 text-white{{ end }}">
-          {{ printf "%.1f" $total }}
-        </div>
       </div>
 
-      {{/* 信息 */}}
-      <div class="p-4">
-        <h3 class="font-bold text-lg leading-tight">{{ .Title }}</h3>
-        {{ with .Params.title_en }}
-        <p class="text-sm opacity-50 mt-0.5 truncate">{{ . }}</p>
-        {{ end }}
-        <div class="flex items-center gap-2 mt-2 text-xs opacity-60">
-          <span>{{ .Params.year }} {{ .Params.season }}</span>
-          {{ with .Params.studio }}<span>· {{ . }}</span>{{ end }}
-          {{ with .Params.episodes }}<span>· {{ . }}话</span>{{ end }}
+      <div class="flex-1 min-w-0 flex flex-col justify-center">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="font-bold text-xl leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{{ .Title }}</h3>
+            {{ with .Params.title_en }}
+            <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{{ . }}</p>
+            {{ end }}
+          </div>
+          <div class="shrink-0 px-3 py-1.5 rounded-lg font-bold text-lg
+                      {{ if ge $total 90 }}bg-amber-500 text-white
+                      {{ else if ge $total 75 }}bg-emerald-500 text-white
+                      {{ else if ge $total 60 }}bg-blue-500 text-white
+                      {{ else }}bg-red-500 text-white{{ end }}">
+            {{ printf "%.1f" $total }}
+          </div>
         </div>
-        {{ with .Params.brief }}
-        <p class="text-sm mt-2 opacity-70 line-clamp-2">{{ . }}</p>
-        {{ end }}
+
+        <div class="flex items-center gap-2 mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+          <span class="inline-flex items-center gap-1 shrink-0 w-24">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            {{ .Params.year }} {{ .Params.season }}
+          </span>
+          {{ with .Params.studio }}<span class="before:content-['·'] truncate max-w-[150px]"> {{ . }}</span>{{ end }}
+          {{ with .Params.episodes }}<span class="before:content-['·'] shrink-0"> {{ . }}话</span>{{ end }}
+        </div>
+
         {{ with .Params.genres }}
-        <div class="flex flex-wrap gap-1.5 mt-3">
-          {{ range first 3 . }}
-          <span class="text-xs px-2 py-0.5 rounded-full border border-neutral-300
-                       dark:border-neutral-600 opacity-60">{{ . }}</span>
+        <div class="flex flex-wrap gap-2 mt-3">
+          {{ range . }}
+          <span class="text-xs px-3 py-1 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20">{{ . }}</span>
           {{ end }}
         </div>
+        {{ end }}
+
+        {{ with .Params.brief }}
+        <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-3 line-clamp-2">{{ . }}</p>
         {{ end }}
       </div>
     </a>
@@ -80,30 +105,57 @@
 
 <style>
 .filter-btn {
-  padding: 0.4rem 1rem;
+  padding: 0.5rem 1.25rem;
   border-radius: 999px;
-  border: 1px solid currentColor;
-  opacity: 0.4;
-  font-size: 0.85rem;
+  border: 1px solid #d4d4d4;
+  opacity: 0.6;
+  font-size: 0.875rem;
+  font-medium;
   cursor: pointer;
   background: transparent;
-  transition: all 0.2s;
+  color: #525252;
+  transition: all 0.2s ease;
 }
-.filter-btn.active { opacity: 1; background: var(--accent, #f59e0b); color: #000; border-color: transparent; }
-.filter-btn:hover { opacity: 0.8; }
+.filter-btn.active { 
+  opacity: 1; 
+  background: #262626;
+  color: #fff; 
+  border-color: transparent; 
+}
+.filter-btn:hover { 
+  opacity: 0.9;
+  background: #f5f5f5;
+}
+@media (prefers-color-scheme: dark) {
+  .filter-btn { border-color: #525252; color: #a3a3a3; }
+  .filter-btn.active { background: #e5e5e5; color: #171717; }
+  .filter-btn:hover { background: #404040; }
+}
 </style>
 
 <script>
+function filterCards() {
+  const scoreFilter = document.querySelector('.filter-btn.active').dataset.filter;
+  const yearFilter = document.getElementById('yearFilter').value;
+  const seasonFilter = document.getElementById('seasonFilter').value;
+  document.querySelectorAll('.anime-card').forEach(card => {
+    const score = parseFloat(card.dataset.score);
+    const year = card.dataset.year;
+    const season = card.dataset.season;
+    const scoreMatch = scoreFilter === 'all' || score >= parseFloat(scoreFilter);
+    const yearMatch = yearFilter === 'all' || year === yearFilter;
+    const seasonMatch = seasonFilter === 'all' || season === seasonFilter;
+    card.style.display = (scoreMatch && yearMatch && seasonMatch) ? '' : 'none';
+  });
+}
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    const threshold = btn.dataset.filter;
-    document.querySelectorAll('.anime-card').forEach(card => {
-      const score = parseFloat(card.dataset.score);
-      card.style.display = (threshold === 'all' || score >= parseFloat(threshold)) ? '' : 'none';
-    });
+    filterCards();
   });
 });
+document.getElementById('yearFilter').addEventListener('change', filterCards);
+document.getElementById('seasonFilter').addEventListener('change', filterCards);
 </script>
 {{ end }}
