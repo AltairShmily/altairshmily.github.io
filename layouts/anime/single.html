@@ -135,8 +135,10 @@
       {{ $catScore := 0 }}
       {{ range $cat.items }}
         {{ $val := index $p (printf "score_%s" .key) }}
-        {{ $catScore = add $catScore (mul (float $val) (div (float .max) 10.0)) }}
+        {{ $rawScore := mul (float $val) (div (float .max) 10.0) }}
+        {{ $catScore = add $catScore (printf "%.1f" $rawScore | float) }}
       {{ end }}
+      {{ $catScore = printf "%.1f" $catScore | float }}
 
       <div class="p-5 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200/60 dark:border-neutral-800/60">
         <div class="flex justify-between items-center mb-4">
@@ -151,8 +153,8 @@
         <div class="space-y-3">
           {{ range $cat.items }}
           {{ $raw := index $p (printf "score_%s" .key) }}
-          {{ $score := mul (float $raw) (div (float .max) 10.0) }}
-          {{ $pct := div (float $score) (float .max) | mul 100.0 }}
+          {{ $score := mul (float $raw) (div (float .max) 10.0) | printf "%.1f" | float }}
+          {{ $pct := mul $score 10.0 }}
           <div>
             <div class="flex justify-between text-sm mb-1.5">
               <span class="text-neutral-600 dark:text-neutral-400">{{ .name }}</span>
