@@ -129,16 +129,19 @@
       评分明细
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {{ range $catName, $cat := $categories }}
+{{ range $catName, $cat := $categories }}
       {{ $catMax := 0 }}
-      {{ range $cat.items }}{{ $catMax = add $catMax .max }}{{ end }}
-      {{ $catScore := 0 }}
+      {{ range $cat.items}}{{ $catMax = add $catMax .max }}{{ end }}
+      {{ $catScore := 0.0 }}
       {{ range $cat.items }}
         {{ $val := index $p (printf "score_%s" .key) }}
-        {{ $rawScore := mul (float $val) (div (float .max) 10.0) }}
-        {{ $catScore = add $catScore (printf "%.1f" $rawScore | float) }}
+        {{ $temp := mul (float $val) (float .max) }}
+        {{ $scaledInt := int (add $temp 0.5) }}
+        {{ $itemScore := div (float $scaledInt) 10.0 }}
+        {{ $catScore = add $catScore $itemScore }}
       {{ end }}
-      {{ $catScore = printf "%.1f" $catScore | float }}
+      {{ $catScoreFinal := int (add (mul $catScore 10.0) 0.5) }}
+      {{ $catScore = div (float $catScoreFinal) 10.0 }}
 
       <div class="p-5 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200/60 dark:border-neutral-800/60">
         <div class="flex justify-between items-center mb-4">
@@ -152,14 +155,16 @@
         </div>
         <div class="space-y-3">
           {{ range $cat.items }}
-          {{ $raw := index $p (printf "score_%s" .key) }}
-          {{ $score := mul (float $raw) (div (float .max) 10.0) | printf "%.1f" | float }}
+          {{ $rawVal := index $p (printf "score_%s" .key) }}
+          {{ $temp := mul (float $rawVal) (float .max) }}
+          {{ $scaledInt := int (add $temp 0.5) }}
+          {{ $score := div (float $scaledInt) 10.0 }}
           {{ $pct := mul $score 10.0 }}
           <div>
             <div class="flex justify-between text-sm mb-1.5">
               <span class="text-neutral-600 dark:text-neutral-400">{{ .name }}</span>
               <span class="font-mono font-semibold
-                           {{ if lt $raw 0.0 }}text-red-500{{ end }}">
+                           {{ if lt $rawVal 0.0 }}text-red-500{{ end }}">
                 {{ printf "%.1f" $score }} / {{ .max }}
               </span>
             </div>
