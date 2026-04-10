@@ -939,7 +939,7 @@ function slugify(text) {
 
 function getSelected(containerId, dataAttr) {
   return [...document.querySelectorAll('#' + containerId + ' .tag-option.selected')]
-    .map(el => '"' + el.dataset[dataAttr] + '"');
+    .map(el => el.dataset[dataAttr]);
 }
 
 function collectAll() {
