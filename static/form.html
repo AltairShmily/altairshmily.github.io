@@ -568,6 +568,17 @@
     </div>
     <div class="form-row single">
       <div class="form-group">
+        <label>作品来源（点击选择）</label>
+        <div class="tag-selector" id="sourceTags">
+          <span class="tag-option" data-genre="轻小说改">轻小说改</span>
+          <span class="tag-option" data-genre="漫画改">漫画改</span>
+          <span class="tag-option" data-genre="游戏改">游戏改</span>
+          <span class="tag-option" data-genre="原创">原创</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-row single">
+      <div class="form-group">
         <label>推荐标签（点击选择）</label>
         <div class="tag-selector" id="recTags">
           <span class="tag-option" data-tag="推荐">推荐</span>
@@ -965,6 +976,7 @@ function generateMarkdown() {
 
   const { raw, grand } = collectAll();
   const genres = getSelected('genreTags', 'genre');
+  const sources = getSelected('sourceTags', 'genre');
   const tags = getSelected('recTags', 'tag');
   const today = new Date().toISOString().split('T')[0];
 
@@ -978,6 +990,7 @@ function generateMarkdown() {
   if (episodes) md += 'episodes: ' + episodes + '\n';
   if (studio) md += 'studio: "' + studio + '"\n';
   if (genres.length) md += 'genres: [' + genres.join(', ') + ']\n';
+  if (sources.length) md += 'source: "' + sources.join(', ') + '"\n';
 
   SCORE_SCHEMA.forEach(cat => {
     cat.items.forEach(item => {
