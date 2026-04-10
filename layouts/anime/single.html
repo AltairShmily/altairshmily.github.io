@@ -36,28 +36,29 @@
         </div>
         {{ end }}
 
-        <div class="mt-6 p-6 rounded-2xl border
-                    {{ if ge $total 90 }}bg-amber-500/5 border-amber-500/20
-                    {{ else if ge $total 75 }}bg-emerald-500/5 border-emerald-500/20
-                    {{ else if ge $total 60 }}bg-blue-500/5 border-blue-500/20
-                    {{ else }}bg-red-500/5 border-red-500/20{{ end }}">
-          <div class="flex items-baseline gap-2">
-            <span class="text-5xl font-extrabold
-                         {{ if ge $total 90 }}text-amber-500
-                         {{ else if ge $total 75 }}text-emerald-500
-                         {{ else if ge $total 60 }}text-blue-500
-                         {{ else }}text-red-500{{ end }}">
+        {{ $c := "#6b7280" }}
+        {{ if ge $total 90 }}{{ $c = "#f59e0b" }}
+        {{ else if ge $total 75 }}{{ $c = "#3b82f6" }}
+        {{ else if ge $total 60 }}{{ $c = "#22c55e" }}
+        {{ else if ge $total 40 }}{{ $c = "#a855f7" }}
+        {{ else if ge $total 15 }}{{ $c = "#6b7280" }}
+        {{ else }}{{ $c = "#ef4444" }}{{ end }}
+        <div class="mt-6 p-6 rounded-2xl border-2"
+             style="background: {{ $c }}19; border-color: {{ $c }}66;">
+          <div class="flex items-center gap-2">
+            <span class="text-5xl font-extrabold" style="color: {{ $c }}">
               {{ printf "%.1f" $total }}
             </span>
             <span class="text-xl font-medium text-neutral-400">/ 106</span>
-            <span class="ml-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-bold
-                         {{ if ge $total 90 }}bg-amber-500 text-white shadow-lg shadow-amber-500/40
-                         {{ else if ge $total 75 }}bg-emerald-500 text-white shadow-lg shadow-emerald-500/40
-                         {{ else if ge $total 60 }}bg-blue-500 text-white shadow-lg shadow-blue-500/40
-                         {{ else }}bg-red-500 text-white shadow-lg shadow-red-500/40{{ end }}">
+            <span class="ml-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-bold text-white"
+                 style="background: {{ $c }};
+                        box-shadow: 0 10px 15px -3px {{ $c }}66;">
               {{ if ge $total 90 }}⭐ 神作
               {{ else if ge $total 75 }}🔥 强推
               {{ else if ge $total 60 }}✨ 平稳落地
+              {{ else if ge $total 40 }}⚠️ 硬伤
+              {{ else if ge $total 15 }}😐 丑陋
+              {{ else if and (lt $total 15) (ne $total 0.0) }}💀 横亘千古
               {{ else }}⚠️ 硬伤{{ end }}
             </span>
           </div>
@@ -112,7 +113,7 @@
         (dict "key" "bonus_impact" "name" "后续影响" "max" 2)
       )
     )
-    "特别评分" (dict
+    "团队体验" (dict
       "pct" 15
       "items" (slice
         (dict "key" "discussion" "name" "讨论度" "max" 5)

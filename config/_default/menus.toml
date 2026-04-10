@@ -25,7 +25,6 @@
 
 [[main]]
   identifier = "github"
+  pre = "github"
   url = "https://github.com/AltairShmily"
   weight = 10
-  [main.params]
-    icon = "github"

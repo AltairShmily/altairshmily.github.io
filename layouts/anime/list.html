@@ -8,8 +8,8 @@
     <div class="mt-6">
       <a href="/form.html"
          class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm
-                bg-amber-500 text-white hover:bg-amber-400
-                shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40
+                bg-primary-600 text-white hover:bg-primary-500
+                shadow-lg shadow-primary-600/30 hover:shadow-xl hover:shadow-primary-600/40
                 transition-all duration-300">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         提交新评价
@@ -21,14 +21,18 @@
     <span class="text-sm font-medium text-neutral-500">评分:</span>
     <div class="flex flex-wrap gap-2">
       <button class="filter-btn active" data-filter="all">全部</button>
-      <button class="filter-btn" data-filter="90">神作 (≥90)</button>
-      <button class="filter-btn" data-filter="75">强推 (≥75)</button>
-      <button class="filter-btn" data-filter="60">平稳 (≥60)</button>
+      <button class="filter-btn" data-filter="shenzuo">⭐ 神作</button>
+      <button class="filter-btn" data-filter="qiangtui">🔥 强推</button>
+      <button class="filter-btn" data-filter="pingwen">✨ 平稳</button>
+      <button class="filter-btn" data-filter="yingshang">⚠️ 硬伤</button>
+      <button class="filter-btn" data-filter="choulou">😐 丑陋</button>
     </div>
+  </div>
 {{ $years := slice }}
 {{ range $allPages }}{{ $year := .Params.year }}{{ if $year }}{{ $years = $years | append $year }}{{ end }}{{ end }}
 {{ $uniqueYears := uniq $years }}
-    <span class="text-sm font-medium text-neutral-500 ml-4">年份:</span>
+  <div class="flex flex-wrap items-center gap-4 mb-6">
+    <span class="text-sm font-medium text-neutral-500">年份:</span>
     <select id="yearFilter" class="w-36 px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
       <option value="all">全部</option>
       {{ range sort $uniqueYears "value" "desc" }}<option value="{{ . }}">{{ . }}</option>{{ end }}
@@ -61,18 +65,22 @@
       </div>
 
       <div class="flex-1 min-w-0 flex flex-col justify-center">
-        <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center justify-between gap-3">
           <div>
             <h3 class="font-bold text-xl leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{{ .Title }}</h3>
             {{ with .Params.title_en }}
             <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{{ . }}</p>
             {{ end }}
           </div>
-          <div class="shrink-0 px-3 py-1.5 rounded-lg font-bold text-lg
-                      {{ if ge $total 90 }}bg-amber-500 text-white
-                      {{ else if ge $total 75 }}bg-emerald-500 text-white
-                      {{ else if ge $total 60 }}bg-blue-500 text-white
-                      {{ else }}bg-red-500 text-white{{ end }}">
+          {{ $badgeColor := "#6b7280" }}
+          {{ if ge $total 90 }}{{ $badgeColor = "#f59e0b" }}
+          {{ else if ge $total 75 }}{{ $badgeColor = "#3b82f6" }}
+          {{ else if ge $total 60 }}{{ $badgeColor = "#22c55e" }}
+          {{ else if ge $total 40 }}{{ $badgeColor = "#a855f7" }}
+          {{ else if ge $total 15 }}{{ $badgeColor = "#6b7280" }}
+          {{ else }}{{ $badgeColor = "#ef4444" }}{{ end }}
+          <div class="shrink-0 px-3 py-1.5 rounded-lg font-bold text-lg text-white"
+               style="background: {{ $badgeColor }}">
             {{ printf "%.1f" $total }}
           </div>
         </div>
@@ -107,42 +115,53 @@
 .filter-btn {
   padding: 0.5rem 1.25rem;
   border-radius: 999px;
-  border: 1px solid #d4d4d4;
-  opacity: 0.6;
+  border: 1px solid #93c5fd;
+  opacity: 0.7;
   font-size: 0.875rem;
-  font-medium;
+  font-weight: 500;
   cursor: pointer;
   background: transparent;
-  color: #525252;
+  color: #3b82f6;
   transition: all 0.2s ease;
 }
 .filter-btn.active { 
   opacity: 1; 
-  background: #262626;
+  background: #3b82f6;
   color: #fff; 
   border-color: transparent; 
 }
 .filter-btn:hover { 
-  opacity: 0.9;
-  background: #f5f5f5;
+  opacity: 1;
+  background: #dbeafe;
 }
 @media (prefers-color-scheme: dark) {
-  .filter-btn { border-color: #525252; color: #a3a3a3; }
-  .filter-btn.active { background: #e5e5e5; color: #171717; }
-  .filter-btn:hover { background: #404040; }
+  .filter-btn { border-color: #1e40af; color: #60a5fa; }
+  .filter-btn.active { background: #3b82f6; color: #fff; }
+  .filter-btn:hover { background: #1e3a5f; }
 }
 </style>
 
 <script>
+const tiers = {
+  shenzuo:  { min: 90, max: Infinity },
+  qiangtui: { min: 75, max: 90 },
+  pingwen:  { min: 60, max: 75 },
+  yingshang:{ min: 40, max: 60 },
+  choulou:  { min: 15, max: 40 }
+};
+
 function filterCards() {
-  const scoreFilter = document.querySelector('.filter-btn.active').dataset.filter;
+  const activeBtn = document.querySelector('.filter-btn.active');
+  const scoreFilter = activeBtn.dataset.filter;
   const yearFilter = document.getElementById('yearFilter').value;
   const seasonFilter = document.getElementById('seasonFilter').value;
+  const tier = tiers[scoreFilter];
+
   document.querySelectorAll('.anime-card').forEach(card => {
     const score = parseFloat(card.dataset.score);
     const year = card.dataset.year;
     const season = card.dataset.season;
-    const scoreMatch = scoreFilter === 'all' || score >= parseFloat(scoreFilter);
+    const scoreMatch = !tier || (score >= tier.min && score < tier.max);
     const yearMatch = yearFilter === 'all' || year === yearFilter;
     const seasonMatch = seasonFilter === 'all' || season === seasonFilter;
     card.style.display = (scoreMatch && yearMatch && seasonMatch) ? '' : 'none';
