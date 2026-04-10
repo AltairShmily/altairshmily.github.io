@@ -102,6 +102,12 @@
         </div>
         {{ end }}
 
+        {{ with .Params.source }}
+        <div class="flex flex-wrap gap-2 mt-2">
+          <span class="text-xs px-3 py-1 rounded-full" style="background:#38bdf8/10;color:#0284c7;border:1px solid #38bdf8/20">{{ . }}</span>
+        </div>
+        {{ end }}
+
         {{ with .Params.brief }}
         <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-3 line-clamp-2">{{ . }}</p>
         {{ end }}
