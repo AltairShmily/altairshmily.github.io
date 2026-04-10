@@ -48,16 +48,26 @@
   </div>
 
   <div class="space-y-4" id="animeGrid">
-    {{ range .Pages.ByParam "score_total" }}
-    {{ $total := .Params.score_total | float }}
-    {{ $year := .Params.year }}{{ $season := .Params.season }}
-    <a href="{{ .Permalink }}"
+    {{ $seasonMonths := dict "冬季" 1 "春季" 4 "夏季" 7 "秋季" 10 }}
+    {{ $scratch := newScratch }}
+    {{ $scratch.Set "items" slice }}
+    {{ range .Pages }}
+      {{ $year := .Params.year | default 0 }}
+      {{ $month := index $seasonMonths (.Params.season | default "") | default 0 }}
+      {{ $scratch.Add "items" (slice (dict "page" . "key" (add (mul $year 12) $month))) }}
+    {{ end }}
+    {{ $items := sort ($scratch.Get "items") "key" "desc" }}
+    {{ range $items }}
+    {{ $page := .page }}
+    {{ $total := $page.Params.score_total | float }}
+    {{ $year := $page.Params.year }}{{ $season := $page.Params.season }}
+    <a href="{{ $page.Permalink }}"
        class="anime-card group flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 bg-white dark:bg-neutral-900/50 hover:border-primary-500/30 dark:hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/10 transition-all duration-300"
        data-score="{{ $total }}" data-year="{{ $year }}" data-season="{{ $season }}">
 
       <div class="shrink-0 w-24 sm:w-28 aspect-[3/4] rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-800 shadow-md">
-        {{ with .Params.cover }}
-        <img src="{{ . }}" alt="{{ $.Title }}" loading="lazy"
+        {{ with $page.Params.cover }}
+        <img src="{{ . }}" alt="{{ $page.Title }}" loading="lazy"
              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
         {{ else }}
         <div class="w-full h-full flex items-center justify-center text-2xl opacity-20">🎬</div>
@@ -67,8 +77,8 @@
       <div class="flex-1 min-w-0 flex flex-col justify-center">
         <div class="flex items-center justify-between gap-3">
           <div>
-            <h3 class="font-bold text-xl leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{{ .Title }}</h3>
-            {{ with .Params.title_en }}
+            <h3 class="font-bold text-xl leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{{ $page.Title }}</h3>
+            {{ with $page.Params.title_en }}
             <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{{ . }}</p>
             {{ end }}
           </div>
@@ -88,13 +98,13 @@
         <div class="flex items-center gap-2 mt-2 text-sm text-neutral-500 dark:text-neutral-400">
           <span class="inline-flex items-center gap-1 shrink-0 w-24">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            {{ .Params.year }} {{ .Params.season }}
+            {{ $page.Params.year }} {{ $page.Params.season }}
           </span>
-          {{ with .Params.studio }}<span class="before:content-['·'] truncate max-w-[150px]"> {{ . }}</span>{{ end }}
-          {{ with .Params.episodes }}<span class="before:content-['·'] shrink-0"> {{ . }}话</span>{{ end }}
+          {{ with $page.Params.studio }}<span class="before:content-['·'] truncate max-w-[150px]"> {{ . }}</span>{{ end }}
+          {{ with $page.Params.episodes }}<span class="before:content-['·'] shrink-0"> {{ . }}话</span>{{ end }}
         </div>
 
-        {{ with .Params.genres }}
+        {{ with $page.Params.genres }}
         <div class="flex flex-wrap gap-2 mt-3">
           {{ range . }}
           <span class="text-xs px-3 py-1 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20">{{ . }}</span>
@@ -102,13 +112,13 @@
         </div>
         {{ end }}
 
-        {{ with .Params.source }}
+        {{ with $page.Params.source }}
         <div class="flex flex-wrap gap-2 mt-2">
           <span class="text-xs px-3 py-1 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">{{ . }}</span>
         </div>
         {{ end }}
 
-        {{ with .Params.brief }}
+        {{ with $page.Params.brief }}
         <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-3 line-clamp-2">{{ . }}</p>
         {{ end }}
       </div>
